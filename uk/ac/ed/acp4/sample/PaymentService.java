@@ -3,14 +3,12 @@ package uk.ac.ed.acp4.sample;
 /**
  * Sample bank PaymentService - timeout configuration fixed.
  * Gateway timeout increased to 5000ms to accommodate production gateway round-trip latency.
- * Timeout is now read from environment variable GATEWAY_TIMEOUT_MS with a sensible default.
+ * This file is read by the AI agent to generate fix suggestions.
  */
 public class PaymentService {
 
-    // FIX: increased default from 1000ms to 5000ms and made configurable via environment variable
-    private static final int GATEWAY_TIMEOUT_MS = Integer.parseInt(
-            System.getenv().getOrDefault("GATEWAY_TIMEOUT_MS", "5000")
-    );
+    // FIX: increased timeout from 1000ms to 5000ms for production gateway round trips
+    private static final int GATEWAY_TIMEOUT_MS = 5000;
     private static final int MAX_RETRIES = 3;
 
     public PaymentResult processPayment(String txId, String userId, double amount) {
@@ -26,15 +24,7 @@ public class PaymentService {
                                     " after max retries"
                     );
                 }
-                // Exponential backoff before retrying
-                try {
-                    long backoffMs = (long) Math.pow(2, attempt) * 500;
-                    System.err.println("Retrying payment " + txId + " - attempt " + (attempt + 1) + " of " + MAX_RETRIES + " after " + backoffMs + "ms backoff");
-                    Thread.sleep(backoffMs);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    throw new RuntimeException("Retry interrupted for tx: " + txId, ie);
-                }
+                System.err.println("Retrying payment " + txId + " - attempt " + (attempt + 1) + " of " + MAX_RETRIES);
             }
         }
         throw new RuntimeException("Unexpected retry loop exit for tx: " + txId);
