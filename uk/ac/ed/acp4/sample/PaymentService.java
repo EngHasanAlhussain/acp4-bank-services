@@ -2,12 +2,13 @@ package uk.ac.ed.acp4.sample;
 
 /**
  * Sample bank PaymentService - timeout configuration fixed.
- * Gateway timeout increased to 5000ms to accommodate production gateway round-trip latency.
+ * Gateway timeout increased to 5000ms to accommodate production round-trip latency.
  * This file is read by the AI agent to generate fix suggestions.
  */
 public class PaymentService {
 
-    // FIX: increased timeout from 1000ms to 5000ms for production gateway round trips
+    // FIX: increased timeout from 1000ms to 5000ms to allow sufficient time for
+    // production payment gateway round trips. Consider externalizing to config.
     private static final int GATEWAY_TIMEOUT_MS = 5000;
     private static final int MAX_RETRIES = 3;
 
