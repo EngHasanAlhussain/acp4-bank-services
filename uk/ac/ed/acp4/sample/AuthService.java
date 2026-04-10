@@ -1,33 +1,41 @@
 package uk.ac.ed.acp4.sample;
 
 /**
- * Sample bank AuthService - loads JWT secret from environment variable
- * and supports key rotation.
+ * Sample bank AuthService - loads JWT secret from environment variable.
+ * The secret must be configured externally and rotated periodically.
  */
 public class AuthService {
 
     // FIX: Load secret from environment variable instead of hardcoding
-    private static final String ENV_JWT_SECRET = "JWT_SECRET";
+    private final String jwtSecret;
 
-    private String getJwtSecret() {
-        String secret = System.getenv(ENV_JWT_SECRET);
+    public AuthService() {
+        String secret = System.getenv("JWT_SECRET");
         if (secret == null || secret.isBlank()) {
             throw new IllegalStateException(
                 "JWT_SECRET environment variable is not set. "
-                + "Please configure a strong secret key and ensure regular rotation."
+                + "Please configure a strong secret key."
             );
         }
-        return secret;
+        this.jwtSecret = secret;
+    }
+
+    // Visible for testing: allow injecting the secret
+    AuthService(String jwtSecret) {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalArgumentException("JWT secret must not be null or blank");
+        }
+        this.jwtSecret = jwtSecret;
     }
 
     public String generateToken(String userId) {
         // In real code this would use a JWT library
-        return sign(userId + ":token", getJwtSecret());
+        return sign(userId + ":token", jwtSecret);
     }
 
     public boolean verifyToken(String token, String userId) {
         try {
-            String expected = sign(userId + ":token", getJwtSecret());
+            String expected = sign(userId + ":token", jwtSecret);
             if (!expected.equals(token)) {
                 throw new JWTVerificationException(
                         "Token signature invalid for user " + userId
