@@ -2,14 +2,16 @@ package uk.ac.ed.acp4.sample;
 
 /**
  * Sample bank PaymentService - timeout configuration fixed.
- * Gateway timeout increased to 5000ms to accommodate production gateway round-trip latency.
+ * Gateway timeout increased to 5000ms to allow sufficient time for
+ * production payment gateway round trips.
  * This file is read by the AI agent to generate fix suggestions.
  */
 public class PaymentService {
 
-    // FIX: increased timeout from 1000ms to 5000ms for production gateway round trips
+    // FIX: timeout increased from 1000ms to 5000ms to accommodate production gateway round-trip latency
     private static final int GATEWAY_TIMEOUT_MS = 5000;
     private static final int MAX_RETRIES = 3;
+    private static final int BACKOFF_BASE_MS = 500;
 
     public PaymentResult processPayment(String txId, String userId, double amount) {
         int attempt = 0;
@@ -24,7 +26,15 @@ public class PaymentService {
                                     " after max retries"
                     );
                 }
-                System.err.println("Retrying payment " + txId + " - attempt " + (attempt + 1) + " of " + MAX_RETRIES);
+                // Exponential backoff before retrying
+                try {
+                    long backoff = BACKOFF_BASE_MS * (long) Math.pow(2, attempt - 1);
+                    System.err.println("Retrying payment " + txId + " - attempt " + (attempt + 1) + " of " + MAX_RETRIES + " after " + backoff + "ms backoff");
+                    Thread.sleep(backoff);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Retry interrupted for tx: " + txId, ie);
+                }
             }
         }
         throw new RuntimeException("Unexpected retry loop exit for tx: " + txId);
