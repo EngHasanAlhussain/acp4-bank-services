@@ -7,8 +7,10 @@ package uk.ac.ed.acp4.sample;
  */
 public class PaymentService {
 
-    // FIX: increased timeout from 1000ms to 5000ms for production gateway round trips
-    private static final int GATEWAY_TIMEOUT_MS = 5000;
+    // FIX: increased timeout from 1000ms to 5000ms to allow sufficient time for payment gateway round trips
+    private static final int GATEWAY_TIMEOUT_MS = Integer.parseInt(
+            System.getenv().getOrDefault("GATEWAY_TIMEOUT_MS", "5000")
+    );
     private static final int MAX_RETRIES = 3;
 
     public PaymentResult processPayment(String txId, String userId, double amount) {
